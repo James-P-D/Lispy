@@ -8,32 +8,31 @@ type
 ## addInts()
 ###########################
 
-proc addInts(l: LispObject): LispObject = 
+proc lispAddInts(l: LispObject): LispObject = 
     if (l.kind != lispObjectList):
         raise newException(EvalException, "addInts() - Not a list")
         
     if len(l.listVal) < 1:
         raise newException(EvalException, "addInts() - Not enough arguments")
-    # TODO: Change this to 'result'
-    var retVal: int = 0
+    
+    result = LispObject(kind: lispObjectInt, intVal: 0)
     var n = 0
     while n < len(l.listVal):
-        var sub_item = l.listVal[n]
-        if (sub_item.kind == lispObjectInt):
+        var next = l.listVal[n]
+        if (next.kind == lispObjectInt):
             if (n == 0):
-                retVal = sub_item.intVal
+                result.intVal = next.intVal
             else:
-                retVal += sub_item.intVal
+                result.intVal += next.intVal
         else:
             raise newException(EvalException, "addInts() - Not an int")
         n += 1
-    result = LispObject(kind: lispObjectInt, intVal: retVal)
 
 ###########################
-## equal()
+## lispEquals()
 ###########################
 
-proc equal(l: LispObject): LispObject =
+proc lispEquals(l: LispObject): LispObject =
     if (l.kind == lispObjectList):
         if len(l.listVal) < 1:
             raise newException(EvalException, "equal() - Not enough arguments")
@@ -43,29 +42,44 @@ proc equal(l: LispObject): LispObject =
     while n < len(l.listVal):
         var next = l.listVal[n]
         if (first.kind != next.kind):
-            raise newException(EvalException, "equal() - Not comparable types")
+            raise newException(EvalException, "equal() - Not comparable types1")
         
-        if (first.kind == lispObjectInt) and (first.intVal != next.intVal):
-            return LispObject(kind: lispObjectBool, boolVal: false)
-        elif (first.kind == lispObjectFloat) and (first.floatVal != next.floatVal):
-            return LispObject(kind: lispObjectBool, boolVal: false)
-        elif (first.kind == lispObjectBool) and (first.boolVal != next.boolVal):
-            return LispObject(kind: lispObjectBool, boolVal: false)
+        if (first.kind == lispObjectInt):
+            if (first.intVal != next.intVal):
+                return LispObject(kind: lispObjectBool, boolVal: false)
+        elif (first.kind == lispObjectFloat):
+            if (first.floatVal != next.floatVal):
+                return LispObject(kind: lispObjectBool, boolVal: false)
+        elif (first.kind == lispObjectBool):
+            if (first.boolVal != next.boolVal):
+                return LispObject(kind: lispObjectBool, boolVal: false)
         else:
-            raise newException(EvalException, "equal() - Not comparable types")
+            raise newException(EvalException, "equal() - Not comparable types2")
+        n += 1
+        
     return LispObject(kind: lispObjectBool, boolVal: true)
-    
+
 ###########################
 ## function_table()
 ###########################
 
 var function_table = {
-                      "+" : LispObject(kind: lispObjectProc, procVal: addInts),
-                      #"-" : LispObject(kind: lispObjectProc, procVal: subInts)
-                      #"*" : LispObject(kind: lispObjectProc, procVal: mulInts)
-                      #"/" : LispObject(kind: lispObjectProc, procVal: divInts) # And 'f+', 'f*' for floats
-                      "=" : LispObject(kind: lispObjectProc, procVal: equal)    # And '!=', '>=' etc.
+                      "+" : LispObject(kind: lispObjectProc, procVal: lispAddInts),
+                      #"-" : LispObject(kind: lispObjectProc, procVal: lispSubInts)
+                      #"*" : LispObject(kind: lispObjectProc, procVal: lispMulInts)
+                      #"/" : LispObject(kind: lispObjectProc, procVal: lispDivInts)                      
+                      #... And 'f+', 'f*' for floats
+                      
+                      "=" : LispObject(kind: lispObjectProc, procVal: lispEquals),
+                      #... And '!=', '>=', 'not', 'and' etc. (not '&&' or '!' !)
+                      
+                      "car" : LispObject(kind: lispObjectProc, procVal: lispCar),
+                      "cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
                       }.toTable
+
+###########################
+## eval()
+###########################
 
 proc eval(l: LispObject): LispObject =
     if (l.kind == lispObjectSymbol):
