@@ -21,7 +21,7 @@ type
         of lispObjectBool: boolVal: bool
         of lispObjectSymbol: symbolVal: string
         of lispObjectList: listVal: seq[LispObject]
-        of lispObjectProc: procVal: (proc (l: LispObject): LispObject)
+        of lispObjectProc: procVal: (proc (l: varargs[LispObject]): LispObject)
 
 ###########################
 ## atom()

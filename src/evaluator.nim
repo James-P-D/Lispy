@@ -4,45 +4,59 @@ import typetraits
 type
     EvalException* = object of CatchableError
 
+# GET RID OF THIS!
+proc evalOutputLispObject(item: LispObject) =
+    if (item.kind == lispObjectInt):
+        stdout.write(item.intVal)
+        stdout.write(" ")
+    elif (item.kind == lispObjectFloat):
+        stdout.write(item.floatVal)
+        stdout.write(" ")
+    elif (item.kind == lispObjectBool):
+        stdout.write(item.boolVal)
+        stdout.write(" ")
+    elif (item.kind == lispObjectSymbol):
+        stdout.write(item.symbolVal)
+        stdout.write(" ")
+    elif (item.kind == lispObjectList):
+        stdout.write(" (")
+        for sub_item in item.listVal:
+            evalOutputLispObject(sub_item)
+        stdout.write(") ")
+
+
 ###########################
 ## addInts()
 ###########################
 
-proc lispAddInts(l: LispObject): LispObject = 
-    if (l.kind != lispObjectList):
-        raise newException(EvalException, "addInts() - Not a list")
-        
-    if len(l.listVal) < 1:
-        raise newException(EvalException, "addInts() - Not enough arguments")
+proc lispAddInts(l: varargs[LispObject]): LispObject = 
+    if len(l) < 1:
+        raise newException(EvalException, "lispAddInts() - Not enough arguments")
     
     result = LispObject(kind: lispObjectInt, intVal: 0)
     var n = 0
-    while n < len(l.listVal):
-        var next = l.listVal[n]
+    while n < len(l):
+        var next = l[n]
         if (next.kind == lispObjectInt):
             if (n == 0):
                 result.intVal = next.intVal
             else:
                 result.intVal += next.intVal
         else:
-            raise newException(EvalException, "addInts() - Not an int")
+            raise newException(EvalException, "lispAddInts() - Not an int")
         n += 1
 
 ###########################
 ## lispEquals()
 ###########################
 
-proc lispEquals(l: LispObject): LispObject =
-    if (l.kind == lispObjectList):
-        if len(l.listVal) < 1:
-            raise newException(EvalException, "equal() - Not enough arguments")
-
-    var first = l.listVal[0]
+proc lispEquals(l: varargs[LispObject]): LispObject =
+    var first = l[0]
     var n = 1
-    while n < len(l.listVal):
-        var next = l.listVal[n]
+    while n < len(l):
+        var next = l[n]
         if (first.kind != next.kind):
-            raise newException(EvalException, "equal() - Not comparable types1")
+            raise newException(EvalException, "lispEquals() - Not comparable types")
         
         if (first.kind == lispObjectInt):
             if (first.intVal != next.intVal):
@@ -54,11 +68,34 @@ proc lispEquals(l: LispObject): LispObject =
             if (first.boolVal != next.boolVal):
                 return LispObject(kind: lispObjectBool, boolVal: false)
         else:
-            raise newException(EvalException, "equal() - Not comparable types2")
+            raise newException(EvalException, "lispEquals() - Not comparable types")
         n += 1
         
     return LispObject(kind: lispObjectBool, boolVal: true)
 
+###########################
+## lispList()
+###########################
+
+#proc lispList(l: varargs[LispObject]): LispObject =
+#    return l
+
+###########################
+## lispList()
+###########################
+
+proc lispCar(l: varargs[LispObject]): LispObject =
+    echo("car l length = ")
+    echo(len(l))
+    echo("")
+    if (len(l) > 0):
+        echo("returning")
+        evalOutputLispObject(l[0])
+        echo("")
+        return l[0]
+        
+    return LispObject(kind: lispObjectList, listVal: @[])
+    
 ###########################
 ## function_table()
 ###########################
@@ -73,8 +110,10 @@ var function_table = {
                       "=" : LispObject(kind: lispObjectProc, procVal: lispEquals),
                       #... And '!=', '>=', 'not', 'and' etc. (not '&&' or '!' !)
                       
+                      #"list" : LispObject(kind: lispObjectProc, procVal: lispList),
                       "car" : LispObject(kind: lispObjectProc, procVal: lispCar),
-                      "cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
+                      #"cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
+                      
                       }.toTable
 
 ###########################
@@ -83,25 +122,33 @@ var function_table = {
 
 proc eval(l: LispObject): LispObject =
     if (l.kind == lispObjectSymbol):
+        echo("lispObjectSymbol")
         if not function_table.hasKey(l.symbolVal):
-            raise newException(EvalException, "'" & l.symbolVal & "' is not callable type")
+            raise newException(EvalException, "'" & l.symbolVal & "' is not a callable type")
         return function_table[l.symbolVal]
     elif (l.kind == lispObjectInt):
+        echo("lispObjectInt")
         return l
     elif (l.kind == lispObjectFloat):
+        echo("lispObjectFloat")
         return l
     elif (l.kind == lispObjectBool):
+        echo("lispObjectBool")
         return l
     else:
-        var someProc = eval(l.listVal[0])
+        if (l.listVal[0].kind == lispObjectSymbol):
+            if (l.listVal[0].symbolVal == "quote"):
+                return l.listVal[1]
         
-        if (someProc.kind != lispObjectProc):
+        var lispFunc = eval(l.listVal[0])
+        
+        if (lispFunc.kind != lispObjectProc):
             raise newException(EvalException, "Not a not callable type")
         
-        var evaluatedTail = LispObject(kind: lispObjectList, listVal: @[])
+        var evaluatedTail: seq[LispObject] #LispObject(kind: lispObjectList, listVal: @[])
         var n = 1
         while n < len(l.listVal):
-            evaluatedTail.listVal.add(eval(l.listVal[n]))
+            evaluatedTail.add(eval(l.listVal[n]))
             n += 1
-                
-        return someProc.procVal(evaluatedTail)
+
+        return lispFunc.procVal(evaluatedTail[0].listVal)
