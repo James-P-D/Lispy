@@ -81,20 +81,26 @@ proc lispEquals(l: varargs[LispObject]): LispObject =
 #    return l
 
 ###########################
-## lispList()
+## lispCar()
 ###########################
 
 proc lispCar(l: varargs[LispObject]): LispObject =
-    echo("car l length = ")
-    echo(len(l))
-    echo("")
     if (len(l) > 0):
-        echo("returning")
-        evalOutputLispObject(l[0])
-        echo("")
         return l[0]
         
-    return LispObject(kind: lispObjectList, listVal: @[])
+
+###########################
+## lispCdr()
+###########################
+
+proc lispCdr(l: varargs[LispObject]): LispObject =
+    result = LispObject(kind: lispObjectList, listVal: @[])
+    
+    var n = 1
+    while n < len(l):
+        result.listVal.add(l[n])
+        n += 1
+    
     
 ###########################
 ## function_table()
@@ -112,7 +118,7 @@ var function_table = {
                       
                       #"list" : LispObject(kind: lispObjectProc, procVal: lispList),
                       "car" : LispObject(kind: lispObjectProc, procVal: lispCar),
-                      #"cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
+                      "cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
                       
                       }.toTable
 
@@ -122,18 +128,14 @@ var function_table = {
 
 proc eval(l: LispObject): LispObject =
     if (l.kind == lispObjectSymbol):
-        echo("lispObjectSymbol")
         if not function_table.hasKey(l.symbolVal):
             raise newException(EvalException, "'" & l.symbolVal & "' is not a callable type")
         return function_table[l.symbolVal]
     elif (l.kind == lispObjectInt):
-        echo("lispObjectInt")
         return l
     elif (l.kind == lispObjectFloat):
-        echo("lispObjectFloat")
         return l
     elif (l.kind == lispObjectBool):
-        echo("lispObjectBool")
         return l
     else:
         if (l.listVal[0].kind == lispObjectSymbol):
