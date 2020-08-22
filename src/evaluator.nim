@@ -77,8 +77,11 @@ proc lispEquals(l: varargs[LispObject]): LispObject =
 ## lispList()
 ###########################
 
-#proc lispList(l: varargs[LispObject]): LispObject =
-#    return l
+proc lispList(l: varargs[LispObject]): LispObject =
+    if (len(l) > 0):
+        return l[0]
+    else:
+        return LispObject(kind: lispObjectList, listVal: @[])
 
 ###########################
 ## lispCar()
@@ -87,6 +90,8 @@ proc lispEquals(l: varargs[LispObject]): LispObject =
 proc lispCar(l: varargs[LispObject]): LispObject =
     if (len(l) > 0):
         return l[0]
+    else:
+        return LispObject(kind: lispObjectList, listVal: @[])
         
 
 ###########################
@@ -100,7 +105,6 @@ proc lispCdr(l: varargs[LispObject]): LispObject =
     while n < len(l):
         result.listVal.add(l[n])
         n += 1
-    
     
 ###########################
 ## function_table()
@@ -116,7 +120,7 @@ var function_table = {
                       "=" : LispObject(kind: lispObjectProc, procVal: lispEquals),
                       #... And '!=', '>=', 'not', 'and' etc. (not '&&' or '!' !)
                       
-                      #"list" : LispObject(kind: lispObjectProc, procVal: lispList),
+                      "list" : LispObject(kind: lispObjectProc, procVal: lispList),
                       "car" : LispObject(kind: lispObjectProc, procVal: lispCar),
                       "cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
                       
@@ -127,6 +131,10 @@ var function_table = {
 ###########################
 
 proc eval(l: LispObject): LispObject =
+    #echo "eval"
+    #evalOutputLispObject(l)
+    #echo ""
+    
     if (l.kind == lispObjectSymbol):
         if not function_table.hasKey(l.symbolVal):
             raise newException(EvalException, "'" & l.symbolVal & "' is not a callable type")
@@ -141,6 +149,17 @@ proc eval(l: LispObject): LispObject =
         if (l.listVal[0].kind == lispObjectSymbol):
             if (l.listVal[0].symbolVal == "quote"):
                 return l.listVal[1]
+            elif (l.listVal[0].symbolVal == "if"):
+                if (len(l.listVal) != 4):
+                    raise newException(EvalException, "'if' must have precisely 3 parameters")
+                    
+                var conditionEvaluated = eval(l.listVal[1])
+                if (conditionEvaluated.kind != lispObjectBool):
+                    raise newException(EvalException, "'if' condition does not evaluate to a boolean")
+                if (conditionEvaluated.boolVal == true):
+                    return l.listVal[2]
+                else:
+                    return l.listVal[3]
         
         var lispFunc = eval(l.listVal[0])
         
@@ -153,4 +172,7 @@ proc eval(l: LispObject): LispObject =
             evaluatedTail.add(eval(l.listVal[n]))
             n += 1
 
-        return lispFunc.procVal(evaluatedTail[0].listVal)
+        if (evaluatedTail[0].kind == lispObjectList):
+            return lispFunc.procVal(evaluatedTail[0].listVal)
+        else:
+            return lispFunc.procVal(evaluatedTail[0])
