@@ -14,25 +14,27 @@ include evaluator
 ## outputLispObject()
 ###########################
 
-proc outputLispObject(item: LispObject) =
+proc lispObjectToString1(item: LispObject): string =
+    result = ""
     if (item.kind == lispObjectInt):
-        stdout.write(item.intVal)
-        stdout.write(" ")
+        result = result & $(item.intVal) & " "
     elif (item.kind == lispObjectFloat):
-        stdout.write(item.floatVal)
-        stdout.write(" ")
+        result = result & $(item.floatVal) & " "
     elif (item.kind == lispObjectBool):
-        stdout.write(item.boolVal)
-        stdout.write(" ")
+        result = result & $(item.boolVal) & " "
     elif (item.kind == lispObjectSymbol):
-        stdout.write(item.symbolVal)
-        stdout.write(" ")
+        result = result & $(item.symbolVal) & " "
     elif (item.kind == lispObjectList):
-        stdout.write(" (")
+        result = result & " ("
         for sub_item in item.listVal:
-            outputLispObject(sub_item)
-        stdout.write(") ")
+            result = result & lispObjectToString1(sub_item)
+        result = result.strip(trailing = true)
+        result = result & ") "
         
+proc lispObjectToString(item: LispObject): string =
+    result = lispObjectToString1(item)
+    result = result.strip(trailing = true)
+    
 ###########################
 ## readInput()
 ###########################
@@ -55,22 +57,33 @@ proc main() =
     stdout.write("Enter an expression, or 'quit' to exit\n");
     stdout.write("\n")
 
+    doAssert "10" == lispObjectToString(eval(parse("(+ 6 4)")))
+    doAssert "true" == lispObjectToString(eval(parse("(= 10 10)")))
+    doAssert "false" == lispObjectToString(eval(parse("(= 10 11)")))
+    doAssert "true" == lispObjectToString(eval(parse("(= (+ 5 5) (+ 9 1))")))
+    doAssert "(1 2 3)" == lispObjectToString(eval(parse("(list 1 2 3)")))
+    doAssert "(1 2 3)" == lispObjectToString(eval(parse("(quote (1 2 3))")))
+    doAssert "9" == lispObjectToString(eval(parse("(car (list 9 8 7))")))
+    doAssert "(8 7)" == lispObjectToString(eval(parse("(cdr (list 9 8 7))")))
+    doAssert "4" == lispObjectToString(eval(parse("(length (list 9 8 7 6))")))
+    doAssert "true" == lispObjectToString(eval(parse("(member 2 (list 1 2 3))")))
+    doAssert "false" == lispObjectToString(eval(parse("(member 9 (list 1 2 3))")))
+    doAssert "true" == lispObjectToString(eval(parse("(member (list 1 2 3) (list (list 1 2 3)))")))
+    doAssert "false" == lispObjectToString(eval(parse("(member (list 1 2 3) (list (list 0 1 2 3)))")))
+    
     var str = ""
     while str != "quit":
         stdout.write("Lispy> ")
-        #str = "(length (quote (1 2 3)))"
         str = readInput()
         if (str != "quit"):
             try:    
                 var parsed = parse(str)
                 stdout.write("Parse: ")
-                outputLispObject(parsed)
-                stdout.write("\n")
+                echo(lispObjectToString(parsed))
     
                 var evaluated = eval(parsed)
                 stdout.write("Eval: ")
-                outputLispObject(evaluated)
-                stdout.write("\n")
+                echo(lispObjectToString(evaluated))
             except ParseException:
                 echo "PARSE ERROR: ", getCurrentExceptionMsg()
             except EvalException:

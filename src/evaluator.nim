@@ -24,6 +24,33 @@ proc evalOutputLispObject(item: LispObject) =
             evalOutputLispObject(sub_item)
         stdout.write(") ")
 
+###########################
+## match()
+###########################
+
+proc match(a, b: LispObject): bool =
+    if (a.kind != b.kind):
+        return false
+        
+    if (a.kind == lispObjectInt):
+        if (a.intVal != b.intVal):
+            return false
+    elif (a.kind == lispObjectFloat):
+        if (a.floatVal != b.floatVal):
+            return false
+    elif (a.kind == lispObjectBool):
+        if (a.boolVal != b.boolVal):
+            return false
+    elif (a.kind == lispObjectList):
+        if (len(a.listVal) != len (b.listVal)):
+            return false
+        else:
+            for i in countup(0, len(a.listVal) - 1):
+                if not match(a.listVal[i], b.listVal[i]):
+                    return false
+    else:
+        return false
+    return true
 
 ###########################
 ## lispAddInts()
@@ -55,20 +82,8 @@ proc lispEquals(l: varargs[LispObject]): LispObject =
     var n = 1
     while n < len(l):
         var next = l[n]
-        if (first.kind != next.kind):
-            raise newException(EvalException, "lispEquals() - Not comparable types")
-        
-        if (first.kind == lispObjectInt):
-            if (first.intVal != next.intVal):
-                return LispObject(kind: lispObjectBool, boolVal: false)
-        elif (first.kind == lispObjectFloat):
-            if (first.floatVal != next.floatVal):
-                return LispObject(kind: lispObjectBool, boolVal: false)
-        elif (first.kind == lispObjectBool):
-            if (first.boolVal != next.boolVal):
-                return LispObject(kind: lispObjectBool, boolVal: false)
-        else:
-            raise newException(EvalException, "lispEquals() - Not comparable types")
+        if not match(first, next):
+            return LispObject(kind: lispObjectBool, boolVal: false)
         n += 1
         
     return LispObject(kind: lispObjectBool, boolVal: true)
@@ -115,6 +130,19 @@ proc lispLength(l: varargs[LispObject]): LispObject =
     result = LispObject(kind: lispObjectInt, intVal: len(l[0].listVal))    
     
 ###########################
+## lispMember()
+###########################
+
+proc lispMember(l: varargs[LispObject]): LispObject =
+    var n = 0
+    while n < len(l[1].listVal):
+        if match(l[0], l[1].listVal[n]):
+            return LispObject(kind: lispObjectBool, boolVal: true)
+        n += 1
+    
+    return LispObject(kind: lispObjectBool, boolVal: false)
+    
+###########################
 ## function_table()
 ###########################
 
@@ -132,7 +160,7 @@ var function_table = {
                       "car" : LispObject(kind: lispObjectProc, procVal: lispCar),
                       "cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
                       "length" : LispObject(kind: lispObjectProc, procVal: lispLength),
-                      
+                      "member": LispObject(kind: lispObjectProc, procVal: lispMember),
                       }.toTable
 
 ###########################
@@ -165,6 +193,7 @@ proc eval(l: LispObject): LispObject =
                 var conditionEvaluated = eval(l.listVal[1]) # Condition
                 if (conditionEvaluated.kind != lispObjectBool):
                     raise newException(EvalException, "'if' condition does not evaluate to a boolean")
+                    
                 if (conditionEvaluated.boolVal == true):
                     return eval(l.listVal[2]) # Then expression
                 else:
