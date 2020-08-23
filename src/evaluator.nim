@@ -166,9 +166,9 @@ proc eval(l: LispObject): LispObject =
                 if (conditionEvaluated.kind != lispObjectBool):
                     raise newException(EvalException, "'if' condition does not evaluate to a boolean")
                 if (conditionEvaluated.boolVal == true):
-                    return l.listVal[2] # Then expression
+                    return eval(l.listVal[2]) # Then expression
                 else:
-                    return l.listVal[3] # Else expression
+                    return eval(l.listVal[3]) # Else expression
         
         var lispFunc = eval(l.listVal[0])
         
