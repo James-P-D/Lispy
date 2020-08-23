@@ -26,7 +26,7 @@ proc evalOutputLispObject(item: LispObject) =
 
 
 ###########################
-## addInts()
+## lispAddInts()
 ###########################
 
 proc lispAddInts(l: varargs[LispObject]): LispObject = 
@@ -78,11 +78,12 @@ proc lispEquals(l: varargs[LispObject]): LispObject =
 ###########################
 
 proc lispList(l: varargs[LispObject]): LispObject =
-    if (len(l) > 0):
-        return l[0]
-    else:
-        return LispObject(kind: lispObjectList, listVal: @[])
-
+    result = LispObject(kind: lispObjectList, listVal: @[])
+    var n = 0
+    while n < len(l):
+        result.listVal.add(l[n])
+        n += 1
+        
 ###########################
 ## lispCar()
 ###########################
@@ -105,6 +106,13 @@ proc lispCdr(l: varargs[LispObject]): LispObject =
     while n < len(l):
         result.listVal.add(l[n])
         n += 1
+
+###########################
+## lispLength()
+###########################
+
+proc lispLength(l: varargs[LispObject]): LispObject =
+    result = LispObject(kind: lispObjectInt, intVal: len(l))    
     
 ###########################
 ## function_table()
@@ -123,6 +131,7 @@ var function_table = {
                       "list" : LispObject(kind: lispObjectProc, procVal: lispList),
                       "car" : LispObject(kind: lispObjectProc, procVal: lispCar),
                       "cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
+                      "length" : LispObject(kind: lispObjectProc, procVal: lispLength),
                       
                       }.toTable
 
@@ -153,26 +162,23 @@ proc eval(l: LispObject): LispObject =
                 if (len(l.listVal) != 4):
                     raise newException(EvalException, "'if' must have precisely 3 parameters")
                     
-                var conditionEvaluated = eval(l.listVal[1])
+                var conditionEvaluated = eval(l.listVal[1]) # Condition
                 if (conditionEvaluated.kind != lispObjectBool):
                     raise newException(EvalException, "'if' condition does not evaluate to a boolean")
                 if (conditionEvaluated.boolVal == true):
-                    return l.listVal[2]
+                    return l.listVal[2] # Then expression
                 else:
-                    return l.listVal[3]
+                    return l.listVal[3] # Else expression
         
         var lispFunc = eval(l.listVal[0])
         
         if (lispFunc.kind != lispObjectProc):
             raise newException(EvalException, "Not a not callable type")
         
-        var evaluatedTail: seq[LispObject] #LispObject(kind: lispObjectList, listVal: @[])
+        var evaluatedTail: seq[LispObject]
         var n = 1
         while n < len(l.listVal):
             evaluatedTail.add(eval(l.listVal[n]))
             n += 1
-
-        if (evaluatedTail[0].kind == lispObjectList):
-            return lispFunc.procVal(evaluatedTail[0].listVal)
-        else:
-            return lispFunc.procVal(evaluatedTail[0])
+        
+        return lispFunc.procVal(evaluatedTail)

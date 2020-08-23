@@ -58,7 +58,7 @@ proc main() =
     var str = ""
     while str != "quit":
         stdout.write("Lispy> ")
-        #str = "(if (= 10 10) 10 5)"
+        #str = "(length (quote (1 2 3)))"
         str = readInput()
         if (str != "quit"):
             try:    
