@@ -89,8 +89,8 @@ proc lispList(l: varargs[LispObject]): LispObject =
 ###########################
 
 proc lispCar(l: varargs[LispObject]): LispObject =
-    if (len(l) > 0):
-        return l[0]
+    if (len(l[0].listVal) > 0):
+        return l[0].listVal[0]
     else:
         return LispObject(kind: lispObjectList, listVal: @[])
         
@@ -103,8 +103,8 @@ proc lispCdr(l: varargs[LispObject]): LispObject =
     result = LispObject(kind: lispObjectList, listVal: @[])
     
     var n = 1
-    while n < len(l):
-        result.listVal.add(l[n])
+    while n < len(l[0].listVal):
+        result.listVal.add(l[0].listVal[n])
         n += 1
 
 ###########################
@@ -112,7 +112,7 @@ proc lispCdr(l: varargs[LispObject]): LispObject =
 ###########################
 
 proc lispLength(l: varargs[LispObject]): LispObject =
-    result = LispObject(kind: lispObjectInt, intVal: len(l))    
+    result = LispObject(kind: lispObjectInt, intVal: len(l[0].listVal))    
     
 ###########################
 ## function_table()
