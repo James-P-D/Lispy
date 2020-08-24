@@ -57,6 +57,7 @@ proc main() =
     stdout.write("Enter an expression, or 'quit' to exit\n");
     stdout.write("\n")
 
+    # Test cases
     doAssert "10" == lispObjectToString(eval(parse("(+ 6 4)")))
     doAssert "true" == lispObjectToString(eval(parse("(= 10 10)")))
     doAssert "false" == lispObjectToString(eval(parse("(= 10 11)")))
@@ -70,6 +71,7 @@ proc main() =
     doAssert "false" == lispObjectToString(eval(parse("(member 9 (list 1 2 3))")))
     doAssert "true" == lispObjectToString(eval(parse("(member (list 1 2 3) (list (list 1 2 3)))")))
     doAssert "false" == lispObjectToString(eval(parse("(member (list 1 2 3) (list (list 0 1 2 3)))")))
+    doAssert "(1 2 3 4)" == lispObjectToString(eval(parse("(cons 1 (list 2 3 4))")))
     
     var str = ""
     while str != "quit":

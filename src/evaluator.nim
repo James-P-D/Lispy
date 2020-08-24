@@ -141,6 +141,19 @@ proc lispMember(l: varargs[LispObject]): LispObject =
         n += 1
     
     return LispObject(kind: lispObjectBool, boolVal: false)
+
+###########################
+## lispCons()
+###########################
+
+proc lispCons(l: varargs[LispObject]): LispObject =    
+    result = LispObject(kind: lispObjectList, listVal: @[])
+    
+    result.listVal.add(l[0])
+    var n = 0
+    while n < len(l[1].listVal):
+        result.listVal.add(l[1].listVal[n])        
+        n += 1
     
 ###########################
 ## function_table()
@@ -161,6 +174,7 @@ var function_table = {
                       "cdr" : LispObject(kind: lispObjectProc, procVal: lispCdr),
                       "length" : LispObject(kind: lispObjectProc, procVal: lispLength),
                       "member": LispObject(kind: lispObjectProc, procVal: lispMember),
+                      "cons": LispObject(kind: lispObjectProc, procVal: lispCons),
                       }.toTable
 
 ###########################
