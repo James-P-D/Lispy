@@ -49,14 +49,10 @@ proc readInput(): string =
         result = result & " " & readLine(stdin)
 
 ###########################
-## main()
+## testCases()
 ###########################
 
-proc main() =
-    stdout.write("Lisp Interpreter\n")
-    stdout.write("Enter an expression, or 'quit' to exit\n");
-    stdout.write("\n")
-
+proc testCases() = 
     # Test cases
     doAssert "10" == lispObjectToString(eval(parse("(+ 6 4)")))
     doAssert "true" == lispObjectToString(eval(parse("(= 10 10)")))
@@ -72,6 +68,17 @@ proc main() =
     doAssert "true" == lispObjectToString(eval(parse("(member (list 1 2 3) (list (list 1 2 3)))")))
     doAssert "false" == lispObjectToString(eval(parse("(member (list 1 2 3) (list (list 0 1 2 3)))")))
     doAssert "(1 2 3 4)" == lispObjectToString(eval(parse("(cons 1 (list 2 3 4))")))
+
+###########################
+## main()
+###########################
+
+proc main() =
+    testCases()
+
+    stdout.write("Lisp Interpreter\n")
+    stdout.write("Enter an expression, or 'quit' to exit\n");
+    stdout.write("\n")
     
     var str = ""
     while str != "quit":
