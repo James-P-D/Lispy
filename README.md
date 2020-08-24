@@ -72,6 +72,17 @@ Lispy> (if (= 10 (+ 5 5) ) 111 999)
 
 Note that the interpreter will not evaluate your expression until the number of open parentheses matches the number of closes. This allows you to enter multi-line expressions:
 
+```
+EXAMPLE HERE
+```
+
+When we are finished, enter `quit` to leave:
+
+```
+Lispy> quit
+Bye!
+```
+
 ## Compiling
 
 The application was tested with Nim v1.2.4. You should be able to compile and run with the following command:

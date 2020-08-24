@@ -97,5 +97,6 @@ proc main() =
                 echo "PARSE ERROR: ", getCurrentExceptionMsg()
             except EvalException:
                 echo "EVAL ERROR: ", getCurrentExceptionMsg()
-                
+    echo "Bye!"
+    
 main()
