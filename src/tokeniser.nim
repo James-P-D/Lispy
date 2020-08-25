@@ -1,3 +1,7 @@
+###########################
+## Imports
+###########################
+
 import strutils
 import sequtils
 import sugar
