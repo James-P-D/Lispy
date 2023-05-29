@@ -37,65 +37,65 @@ Any mathematical operation involving floats will give a float result:
 
 ```
 Lispy> (+ 3.0 4)
-7.0
+Eval: 7.0
 Lispy> (+ 3.5 4)
-7.5
+Eval: 7.5
 ```
 
 We can enter more complex mathematical operations:
 
 ```
 Lispy> (+ (- 10 5) (* 3 4))
-17
+Eval: 17
 ```
 
 We can use `list` and `quote` to create lists:
 
 ```
 Lispy> (list 1 2 3)
-(1 2 3)
+Eval: (1 2 3)
 Lispy> (quote (1 2 3))
-(1 2 3)
+Eval: (1 2 3)
 ```
 
 In addition to integers and floats, we can use symbols:
 
 ```
 Lispy> (list a b c)
-(a b c)
+Eval: (a b c)
 ```
 
 We can use `length`, `car` and `cdr`:
 
 ```
 Lispy> (length (list 1 2 3))
-3
+Eval: 3
 Lispy> (car (list 1 2 3))
-1
+Eval: 1
 Lispy> (cdr (list 1 2 3))
-(2 3)
+Eval: (2 3)
 ```
 
 We can use `member` and `cons`:
 
 ```
 Lispy> (member 2 (list 1 2 3))
-true
+Eval: true
 Lispy> (member 9 (list 1 2 3))
-false
+Eval: false
 Lispy> (cons 0 (list 1 2 3))
-(0 1 2 3)
+Eval: (0 1 2 3)
 ```
 
 We have the usual `=`, `not`, `<`, `<=`, etc. operators:
 
 ```
 Lispy> (= 5 5)
-true
+Eval: true
 Lispy> (not (= 5 6))
-true
+Eval: true
 Lispy> (> 5 6)
-false
+Eval: false
 ```
 
 Note that the above operators expect parameters to be of the same type. If you wish to compare integers and floats you will need to use `int` and `float` to cast:
@@ -113,25 +113,25 @@ We can use `if`:
 
 ```
 Lispy> (if (= 10 (+ 5 5) ) 111 999)
-111
+Eval: 111
 ```
 
 We can declare variables with `defvar`:
 
 ```
 Lispy> (defvar nine 9)
-nine
+Eval: nine
 Lispy> (+ nine 10)
-19
+Eval: 19
 ```
 
 We can declare functions with `deffun` and then call them:
 
 ```
 Lispy> (deffun square (n) (* n n))
-square
+Eval: square
 Lispy> (square 3)
-9
+Eval: 9
 ```
 
 Note that the interpreter will not evaluate your expression until the number of open parentheses matches the number of closes. This allows you to enter multi-line expressions:
@@ -141,9 +141,9 @@ Lispy> (deffun factorial (x)
                (if (<= x 1)
                    1
                    (* x (factorial (- x 1)))))
-factorial
+Eval: factorial
 Lispy> (factorial 5)
-120                            
+Eval: 120                            
 ```
 
 When we are finished, enter `quit` to leave:
